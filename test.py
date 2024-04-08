@@ -72,10 +72,10 @@ def letterCheck(wordRankings, slot, currResponseLetter) :
         # 4
         # ['u', '2']
 
-        #grey
-        if int(currResponseLetter[1]) == 2 and word[1][slot] == currResponseLetter[0]:
-            print(index, word)
-            wordRankings.remove(index)
+        # #grey
+        # if int(currResponseLetter[1]) == 2 and word[1][slot] == currResponseLetter[0]:
+        #     print(index, word)
+        #     wordRankings.remove(index)
             # if int(currResponseLetter[1]) == 0 :
             #     newWordRankings.append(word)
 
