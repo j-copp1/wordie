@@ -29,137 +29,111 @@ def getWordRankings(wordList, letterFreq) :
 
     for word in wordList :
         totalWordValue = 0
+        uniqueLetters = []
         for letter in word :
-            if letter != '\n' :
+            if letter != '\n' and letter not in uniqueLetters:
                 totalWordValue = totalWordValue + letterFreq[letter]
+                uniqueLetters.append(letter)
         wordRankings.append([totalWordValue, word[0:len(word) - 1 ]])
     return sorted(wordRankings, key=lambda x: x[0], reverse=True)
 
-# def letterCheck(wordRankings, responseLetter, responseLetterStatus) :
-
-#     newWordRankings = []
-
-#     # for word in wordRankings
-
-#     for word in wordRankings : 
-#         for i, letter in enumerate(word[1]) :
-#             #skip if letter contains any grey letters 
-#             #add if has any green letter
-
-#     # return newWordRankings
-
-def letterCheck(wordRankings, slot, currResponseLetter) :
-
-    
-    # newerWordRankings = []
-
-    for index, word in enumerate(wordRankings) :
-        #check letter
-
-
-        # print(word)
-        # print(word[1][slot], currResponseLetter[0])
-
-        # 0 - green
-        # 1 - yellow
-        # 2 - grey
-        
-        # word
-        # [8747, 'muzzy']
-
-        # slot 
-        # currResponseLetter
-        # 4
-        # ['u', '2']
-
-        # #grey
-        # if int(currResponseLetter[1]) == 2 and word[1][slot] == currResponseLetter[0]:
-        #     print(index, word)
-        #     wordRankings.remove(index)
-            # if int(currResponseLetter[1]) == 0 :
-            #     newWordRankings.append(word)
-
-
-
-        # if currResponseLetter[1] == 2 and word[1][slot] == currResponseLetter[0] :
-        #     print(word)
-
-        # if currResponseLetter[1] == 2 and word[1][slot] != currResponseLetter[0] :
-        #     #
-        
-
-
-        # #check green
-        # if int(currResponseLetter[1]) == 0 and word[1][slot] == currResponseLetter[0] : 
-        #     newWordRankings.append(word)
-        # #check grey
-        # elif int(currResponseLetter[1]) == 2 and word[1][slot] != currResponseLetter[0] :
-        #     newWordRankings.append(word)
-        # #check yellow 
-        # elif int(currResponseLetter[1]) == 1 and currResponseLetter[0] in word[1] and word[1][slot] != currResponseLetter[0]:
-        #     newWordRankings.append(word)
-        # print('fuck')
-    
-    # if int(currResponseLetter[1]) == 1 :
-    #     newerWordRankings = []
-    #     for word in newWordRankings :
-    #         if(currResponseLetter[0] in word[1]) :
-    #             newerWordRankings.append(word)
-    #     return newerWordRankings
-
-
-    # for word in newWordRankings :
-    #     if int(currResponseLetter[1]) == 1 : 
-    #         newerWordRankings.append(word)
-
-
-    return wordRankings
-
-def findBestWord(currResponse, wordRankings) :
-
-    word = ''
-
-    #green slots, currResponse[x][1] == 0
+def getBestWord(currResponse, wordRankings, greens, yellows, greys) :
 
     newWordRankings = []
 
-    # for word in wordRankings :
-    #     for index, letter in enumerate(word[1]): 
-    #         print(letter, currResponse[index][1],currResponse[index][1] == 0, currResponse[index][0], currResponse[index][0] == letter)
-    #         if currResponse[index][1] == 0 :
-    #             if currResponse[index][0] == letter :
-    #                 print(word)
+    for slot, letter in enumerate(currResponse) :
+        
+        if int(letter[1]) == 0 :
+            greens.append([slot, letter[0]])
+            if letter[0] in yellows.keys() :
+                yellows.pop(letter[0])
+        elif int(letter[1]) == 1 :
+            if letter[0] not in yellows :
+                yellows.update({letter[0] : [slot]})
+            else :
+                yellows[letter[0]].append(slot)
+            pass
+        else :
+            greys.append(letter[0])
 
-    newWordRankings = wordRankings
+    print('greens => ', greens)
+    print('yellows =>', yellows)
+    print('greys =>', greys)
 
-    for slot, currResponseLetter in enumerate(currResponse) :
-        # print("->", len(newWordRankings))
-        newWordRankings = letterCheck(newWordRankings, slot, currResponseLetter)
-        # print("<-", len(newWordRankings))
-    
-    # print(newWordRankings)
+    # for word in [[0,'riser'],[3, 'inter']] :
+    for word in wordRankings :
+        addCheck = True
+
+        #grey check
+        for grey in greys :
+            if grey in word[1] :
+                addCheck = False
+
+        #green check
+        for green in greens : 
+            if green[1] != word[1][green[0]] :
+                addCheck = False
+
+        #yellow check slot
+
+        for yellow in yellows :
+            for slot in yellows[yellow] :
+                if word[1][slot] == yellow :
+                    addCheck = False
+
+        #yellow check full
+        for yellow in yellows :
+            temp = []
+            for index, letter in enumerate(word[1]) :
+                addToTemp = True
+                if index in yellows[yellow] :
+                    addToTemp = False
+                else :
+                    for green in greens : 
+                        if index == green[0] :
+                            addToTemp = False
+                if addToTemp :
+                    temp.append(letter)
+
+            if yellow not in temp :
+                addCheck = False
+
+        if addCheck : 
+            newWordRankings.append(word)
+
+    return newWordRankings, greens, yellows, greys
+
+def wordieRun(wordRankings) :
+
+    #greens [slot, letter]
+    greens = []
+    #yellows {letter : [0, 1, ...]}
+    yellows = {}
+    #greys [letter]
+    greys = []
+
+    userInput = ''
+    while (userInput != 'x') :
+        userInput = input()
+        if userInput == 'x':
+            print("closing")
+        else :
+            currResponse = [
+                [userInput[0], userInput[5]],
+                [userInput[1], userInput[6]],
+                [userInput[2], userInput[7]],
+                [userInput[3], userInput[8]],
+                [userInput[4], userInput[9]]
+            ]
+            wordRankings, greens, yellows, greys = getBestWord(currResponse, wordRankings, greens, yellows, greys)
+            print(len(wordRankings), " ------------------ ", wordRankings[0:5])
 
 
-    #eliminate words
-        #green slots
-        #yellow slots
-        #not there
-        #not in specific slots
 
-    #return best word lol
-
-    return word, newWordRankings
+    # yellows.update({'a' : [0]})
+    # yellows['a'].append(2)
 
 def main():
-
-    # #life cycle 
-    # userInput = ''
-    # while (userInput != 'x') :
-    #     userInput = input()
-    #     if userInput == 'x':
-    #         print("closing")
-    #     else :
-    #         print("fuck")
 
     #all possible wordle words
     wordList = loadList()
@@ -168,57 +142,8 @@ def main():
     #ranking of words to choose from highest combined letter freq
     wordRankings = getWordRankings(wordList, letterFreq)
 
-
-
-    #find best word
-
-    ## 0 = correct letter -> green
-    ## 1 = misplaced -> yellow
-    ## 2 = wrong / excluded -> grey
-
-    #response structure
-    currResponse = [
-        ['p', '0'],
-        ['i', '0'],
-        ['n', '0'],
-        ['t', '2'],
-        ['e', '1'],
-    ]
-
-    # currResponse = [
-    #     ['b', '0'],
-    #     ['o', '0'],
-    #     ['o', '0'],
-    #     ['s', '2'],
-    #     ['t', '2'],
-    # ]
-
-    userInput = ''
-    while (userInput != 'x') :
-        userInput = input()
-        if userInput == 'x':
-            print("closing")
-        else :
-            print('hello')
-            currResponse = [
-                [userInput[0], userInput[5]],
-                [userInput[1], userInput[6]],
-                [userInput[2], userInput[7]],
-                [userInput[3], userInput[8]],
-                [userInput[4], userInput[9]]
-            ]
-            print(len(wordRankings))
-            word, wordRankings = findBestWord(currResponse, wordRankings)
-            print(wordRankings[0:5])
-            print(len(wordRankings))
-
-    # print(len(wordRankings))
-
-    # word, newWordRankings = findBestWord(currResponse, wordRankings)
-
-    # print(len(newWordRankings))
-
-    # print(letterFreq)
+    #run program
+    wordieRun(wordRankings)
 
 if __name__ == "__main__":
     main()
