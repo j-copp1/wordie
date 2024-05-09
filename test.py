@@ -128,11 +128,6 @@ def wordieRun(wordRankings) :
             wordRankings, greens, yellows, greys = getBestWord(currResponse, wordRankings, greens, yellows, greys)
             print(len(wordRankings), " ------------------ ", wordRankings[0:5])
 
-
-
-    # yellows.update({'a' : [0]})
-    # yellows['a'].append(2)
-
 def main():
 
     #all possible wordle words
